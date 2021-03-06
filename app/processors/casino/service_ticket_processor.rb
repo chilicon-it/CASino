@@ -67,12 +67,13 @@ module CASino::ServiceTicketProcessor
 
   private
   def validate_existing_ticket_for_service(ticket, service, options = {})
+    Rails.logger.info "Check information"
     service = clean_service_url(service) if ticket.is_a?(CASino::ServiceTicket)
     if ticket.consumed?
       ValidationResult.new 'INVALID_TICKET', "Ticket '#{ticket.ticket}' already consumed", :warn
     elsif ticket.expired?
       ValidationResult.new 'INVALID_TICKET', "Ticket '#{ticket.ticket}' has expired", :warn
-    elsif service != ticket.service
+    elsif (service != ticket.service) && ("https://#{service}" != ticket.service)
       ValidationResult.new 'INVALID_SERVICE', "Ticket '#{ticket.ticket}' is not valid for service '#{service}'", :warn
     elsif options[:renew] && !ticket.issued_from_credentials?
       ValidationResult.new 'INVALID_TICKET', "Ticket '#{ticket.ticket}' was not issued from credentials but service '#{service}' will only accept a renewed ticket", :info
